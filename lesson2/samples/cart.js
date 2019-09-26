@@ -3,6 +3,7 @@ class Cart {
         this.goodsList = [];
         this.rootElement = rootElement;
         this.rendered = false;
+        this.$cartTable = document.createElement('table');
     }
 
     // Добавляет товар в коризну
@@ -53,26 +54,32 @@ class Cart {
     // очистить корзину
     drop() {
         this.goodsList = [];
+        this.render();
     }
 
-    render(rootElem) {
-        const $cartTable = document.createElement('table');
+    render() {
+        if(this.rendered){
+            this.$cartTable.innerHTML = '';
+        }
+
+        this.rendered = true;
+
         const $cartHeader = document.createElement('thead');
-        $cartTable.appendChild($cartHeader);
+        this.$cartTable.appendChild($cartHeader);
         $cartHeader.innerHTML = '<td>ID</td><td>Название</td><td>Цена</td><td>Количество</td><td>Сумма</td>';
 
         if(this.goodsList.length === 0){
             const $dummy = document.createElement('tr');
             $dummy.innerHTML = '<td colspan = 5>Корзина пуста</td>';
-            $cartTable.appendChild($dummy);
+            this.$cartTable.appendChild($dummy);
         } else {
-            this.goodsList.forEach($item => $cartTable.appendChild($item.render()));
+            this.goodsList.forEach($item => this.$cartTable.appendChild($item.render()));
             const $summary = document.createElement('tr');
             $summary.innerHTML = `<td colspan="3">Итого</td><td>${this.getQuantity()}</td><td>${this.getSum()}</td>`;
-            $cartTable.appendChild($summary);
+            this.$cartTable.appendChild($summary);
         }
 
-        this.rootElement.appendChild($cartTable);
+        this.rootElement.appendChild(this.$cartTable);
     }
 }
 
@@ -82,11 +89,28 @@ class CartItem {
         this.name = name;
         this.price = price;
         this.quantity = quantity;
+
+        this.$id = document.createElement('td');
+        this.$id.innerHTML = this.id;
+
+        this.$name = document.createElement('td');
+        this.$name.innerText = this.name;
+
+        this.$price = document.createElement('td');
+        this.$price.innerText = this.price;
+
+        this.$quantity = document.createElement('td');
+        this.$quantity.innerText = this.quantity;
+
+        this.$sum = document.createElement('td');
+        this.$sum.innerText = this.getSum();
     }
 
     // изменить цену товара
     setPrice(newPrice) {
         this.price = newPrice;
+
+        this.$price = this.price;
     }
 
     // Изменить количество товара
@@ -96,6 +120,9 @@ class CartItem {
         if(this.quantity <= 0){
             this.quantity = 0;
         }
+
+        this.$quantity.innerText = this.quantity;
+        this.updateSum();
     }
 
     // установить количество товара
@@ -105,21 +132,33 @@ class CartItem {
         }
 
         this.quantity = newQuantity;
+        this.$quantity.innerText = this.quantity;
+        this.updateSum();
     }
 
     // получить сумму позиции (количество * цена)
     getSum = () => this.quantity * this.price;
 
+    updateSum() {
+        this.$sum.innerText = this.getSum();
+    }
+
     render() {
         const $itemRow = document.createElement('tr');
-        $itemRow.innerHTML = `<td>${this.id}</td><td>${this.name}</td>`+
-            `<td>${this.price}</td><td>${this.quantity}</td><td>${this.getSum()}</td>`;
+        $itemRow.appendChild(this.$id);
+        $itemRow.appendChild(this.$name);
+        $itemRow.appendChild(this.$price);
+        $itemRow.appendChild(this.$quantity);
+        $itemRow.appendChild(this.$sum);
 
         return $itemRow;
     }
 }
 
-const cart = new Cart(document.body);
+const $cartContainer = document.createElement('div');
+document.body.appendChild($cartContainer);
+
+const cart = new Cart($cartContainer);
 
 const good1 = new CartItem(1, 'носки', 50)
 const good2 = new CartItem(2, 'майка', 50)
@@ -129,16 +168,16 @@ const good4 = new CartItem(4, 'брюки', 50)
 
 cart.addToCart(good3, 20);
 cart.addToCart(good2, 20);
-cart.addToCart(good3, 20);
 cart.addToCart(good1, 20);
 cart.addToCart(good4, 20);
-cart.addToCart(good2);
-cart.addToCart(good3, -1);
+
+cart.render();
 
 cart.removeFromCart(good3);
 
-console.log(cart.getCart());
-cart.render();
+
+
+
 
 const manageCart = document.createElement('div');
 const dropCartButton = document.createElement('button');
@@ -147,6 +186,13 @@ dropCartButton.addEventListener('click', () => {
     cart.drop();
 });
 
+const addToCartButton = document.createElement('button');
+addToCartButton.innerHTML = 'add good3  +2 pcs';
+addToCartButton.addEventListener('click', () => {
+    cart.addToCart(good3, 2);
+});
+
 manageCart.appendChild(dropCartButton);
+manageCart.appendChild(addToCartButton);
 
 document.body.appendChild(manageCart);
