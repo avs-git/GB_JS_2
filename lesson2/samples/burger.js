@@ -24,7 +24,7 @@ class Burger {
             }
         };
 
-        this.size = {};
+        this.size = this.sizes['small'];
 
         this.toppings = {
             cheese: {
@@ -59,24 +59,24 @@ class Burger {
             },
         };
 
-
-
         this.sumResult = document.createElement('span');
         this.sumResult.innerText = this.getSum();
 
         this.caloriesResult = document.createElement('span');
         this.caloriesResult.innerText = this.getCalories();
+
+        this.recipeResult = document.createElement('span');
+        this.recipeResult.innerText = this.getRecipeResult();
     }
 
     setSize(size) {
         this.size = this.sizes[size];
-        this.updateSum();
+        this.update();
     }
 
     addToppings(topping) {
         this.toppings[topping].quantity += 1;
-        this.updateSum();
-        console.log(this.toppings[topping].quantity);
+        this.update();
     }
 
     subsetTopping(topping) {
@@ -84,8 +84,7 @@ class Burger {
         if (this.toppings[topping].quantity <= 0) {
             this.toppings[topping].quantity = 0;
         }
-        this.updateSum();
-        console.log(this.toppings[topping].quantity);
+        this.update();
     }
 
     getSum() {
@@ -94,13 +93,26 @@ class Burger {
             sum += this.toppings[topping].cost * this.toppings[topping].quantity;
         }
         sum += this.size.cost;
-
+        console.log(sum);
         return sum;
     }
 
-    updateSum() {
+    getRecipeResult() {
+        let result = `Размер бургера: ${this.size.name}`;
+        for(let item in this.toppings){
+            if(this.toppings[item].quantity > 0){
+                result += `, ${this.toppings[item].name}: ${this.toppings[item].quantity}`;
+            }
+        }
+        console.log(result);
+
+        return result;
+    }
+
+    update() {
         this.sumResult.innerText = this.getSum();
         this.caloriesResult.innerText = this.getCalories();
+        this.recipeResult.innerText = this.getRecipeResult();
     }
 
     getCalories() {
@@ -114,25 +126,32 @@ class Burger {
     }
 
     render() {
-        const renderedTree = [];
         const $container = document.createElement('div');
-        $container.innerHTML += '<span>выберите размер</span><br/>';
-        for (let sizeItem in this.sizes){
 
-            renderedTree[sizeItem] = {};
+        const domFactory = (tagName, innerText) => {
+            const newElem = document.createElement(tagName);
+            if(innerText) newElem.innerText = innerText;
 
-            renderedTree[sizeItem].element = document.createElement('button');
-            renderedTree[sizeItem].element.innerText = this.sizes[sizeItem].name;
+            return newElem;
+        };
 
-            $container.appendChild(renderedTree[sizeItem].element);
-            renderedTree[sizeItem].element.addEventListener('click', () => {
+        $container.appendChild(domFactory('span', 'Выберите размер бургера'));
+        $container.appendChild(domFactory('br'));
+
+        for(let sizeItem in this.sizes){
+            const burgerButton = document.createElement('button');
+            burgerButton.innerText = sizeItem;
+            burgerButton.addEventListener('click', () => {
                 this.setSize(sizeItem);
             });
-            console.log(renderedTree[sizeItem].element);
+
+            $container.appendChild(burgerButton);
         }
-        $container.innerHTML += '<br/><span>выберите начинку</span><br/>';
+
+        $container.appendChild(domFactory('br'));
+
         for (let toppingsItem in this.toppings){
-            renderedTree[toppingsItem] = document.createElement('span');
+            const $toppingRow = document.createElement('span');
 
             const $subSetButton = document.createElement('button');
             $subSetButton.innerText = '-';
@@ -149,34 +168,30 @@ class Burger {
                 this.addToppings(toppingsItem);
             });
 
-            renderedTree[toppingsItem].appendChild($subSetButton);
-            renderedTree[toppingsItem].appendChild($nameSpan);
-            renderedTree[toppingsItem].appendChild($addButton);
+            $toppingRow.appendChild($subSetButton);
+            $toppingRow.appendChild($nameSpan);
+            $toppingRow.appendChild($addButton);
 
-
-            $container.appendChild(renderedTree[toppingsItem]);
-            $container.innerHTML += '<br/>';
+            $container.appendChild($toppingRow);
+            $container.appendChild(domFactory('br'));
         }
+        $container.appendChild(domFactory('br'));
 
-        $container.innerHTML += '<span>Общая стоимость: </span>';
+        $container.appendChild(domFactory('span', 'Стоимость: '));
         $container.appendChild(this.sumResult);
-        $container.innerHTML += '<br/><span>Общая калорийность: </span>';
-        $container.appendChild(this.caloriesResult);
+        $container.appendChild(domFactory('br'));
 
+        console.log(this.sumResult);
+
+        $container.appendChild(domFactory('span', 'Калорийность: '));
+        $container.appendChild(this.caloriesResult);
+        $container.appendChild(domFactory('br'));
+
+        $container.appendChild(this.recipeResult);
         return $container;
     }
 }
 
 const burger = new Burger();
-
-
-burger.setSize('small');
-burger.addToppings('potato');
-burger.addToppings('spices');
-burger.addToppings('mayonnaise');
-burger.subsetTopping('mayonnaise');
-
-console.log(burger.getCalories());
-console.log(burger.getSum());
 
 document.body.appendChild(burger.render());
