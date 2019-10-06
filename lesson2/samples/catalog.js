@@ -75,9 +75,3 @@ items.fetchItems().then(() => {
     document.querySelector('.catalog').appendChild(item);
   });
 });
-
-document.querySelectorAll('.buyButton').forEach((button) => {
-  button.addEventListener('click', (event) => {
-
-  })
-});
